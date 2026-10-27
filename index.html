@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#161a33">
+<title>ผู้ช่วยเล่นเกมกระดาน RPG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161a33;--pn:#20264a;--ln:#343c6e;--tx:#ece4d2;--mu:#a39fb8;--am:#f0b252;--jd:#54c2a4;--rd:#e5645a;--bl:#6aa0ee}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 Sarabun,"Noto Sans Thai",sans-serif}
+h1,h2,h3{font-family:Mitr,Sarabun,sans-serif;font-weight:500;margin:0}
+h3{font-size:1.05rem}h2{font-size:1.1rem;margin:18px 0 8px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;border-bottom:1px solid var(--ln);display:flex;align-items:center;gap:8px}
+header h1{font-size:1.05rem;flex:1}
+header .rd{color:var(--am);font-family:Mitr,sans-serif}
+main{padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 84px);max-width:640px;margin:auto}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--pn);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--mu);padding:12px 0;font:inherit;font-family:Mitr,sans-serif}
+nav button.on{color:var(--am);box-shadow:inset 0 3px 0 var(--am)}
+button{font:inherit;border:1px solid var(--ln);background:var(--pn);color:var(--tx);border-radius:8px;padding:8px 12px;min-height:40px}
+button.p{background:var(--am);border-color:var(--am);color:#2a1d05;font-weight:600}
+button.d{color:var(--rd);border-color:#6b3040}
+button.off{opacity:.4}
+.cd{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:12px}
+.mon{border-left:4px solid var(--rd)}.cd.pl{border-left:4px solid var(--jd)}
+.hd{display:flex;gap:10px;align-items:center;margin-bottom:8px}.hd>div{flex:1}
+.hd small,.it small{display:block;color:var(--mu);line-height:1.3}
+.av{width:48px;height:48px;border-radius:10px;object-fit:cover;background:var(--ln);display:grid;place-items:center;font-family:Mitr;flex:none}
+.bar{position:relative;height:22px;background:#0f1226;border-radius:6px;margin:4px 0;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--jd)}.bar.m i{background:var(--bl)}
+.bar b{position:relative;font-size:.8rem;padding-left:8px;line-height:22px;font-weight:600;text-shadow:0 1px 2px #000}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.it{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--ln)}
+.it .gr{flex:1;min-width:0}.it button{padding:6px 9px;min-height:36px}
+.ok{color:var(--jd)!important}.wt{color:var(--am)!important}
+.sec{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.sec b{font-family:Mitr}
+.lg{padding:6px 0;border-bottom:1px solid var(--ln)}.lg small{color:var(--mu);margin-right:8px}
+.emp{color:var(--mu);text-align:center;padding:24px 8px}
+#dlg{position:fixed;inset:0;background:#000b;z-index:9;display:none;align-items:flex-end;justify-content:center}
+#dlg.on{display:flex}
+.fm{background:var(--bg);border:1px solid var(--ln);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.fm label{display:block;margin-top:10px;color:var(--mu);font-size:.9rem}
+.fm input,.fm select,.fm textarea{width:100%;font:inherit;background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:9px;margin-top:3px}
+.fm .pv[hidden]{display:none}
+.fm .pv{width:64px;height:64px;object-fit:cover;border-radius:8px;display:block;margin-top:6px}
+.fm .row button{flex:1}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);background:var(--tx);color:#161a33;padding:10px 14px;border-radius:10px;z-index:10;display:none;text-align:center}
+@media (prefers-reduced-motion:no-preference){.bar i{transition:width .25s}}
+</style>
+</head>
+<body>
+<header><h1>ผู้ช่วยเล่นเกม RPG</h1><span class="rd" id="rd"></span><button id="un">↩ ย้อน</button><button class="p" id="et">จบเทิร์น</button></header>
+<main id="mn"></main>
+<nav id="nv"></nav>
+<div id="dlg"></div><div id="toast"></div>
+<script>
+const K='rpgh1',$=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}};
+let S=ld(K,{chars:[],mons:[],tpl:[],log:[],round:1}),H=ld(K+'h',[]),tab='p',open=new Set(),IM={};
+const MX={hp:'maxHp',mp:'maxMp'};
+const eff=(e,k)=>(+e[k]||0)+(e.items||[]).filter(i=>i.on).reduce((a,i)=>a+(+i[k]||0),0);
+const now=()=>new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+function sv(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){toast('พื้นที่เต็ม ลองใช้รูปน้อยลงหรือส่งออกไฟล์สำรอง')}
+ try{localStorage.setItem(K+'h',JSON.stringify(H))}catch(e){try{localStorage.removeItem(K+'h')}catch(_){}}}
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2200)}
+function act(m,f){H.push({s:JSON.stringify(S),m});if(H.length>25)H.shift();f();S.log.unshift({t:now(),m});S.log=S.log.slice(0,200);sv();draw()}
+function undo(){const h=H.pop();if(!h)return toast('ไม่มีขั้นตอนให้ย้อนกลับ');S=JSON.parse(h.s);S.log.unshift({t:now(),m:'↩ ย้อนกลับ: '+h.m});sv();draw();toast('ย้อนกลับแล้ว')}
+function rs(file,cb){const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const s=Math.min(1,140/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*s;c.height=i.height*s;c.getContext('2d').drawImage(i,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.7))};i.onerror=()=>toast('อ่านรูปนี้ไม่ได้ ลองรูป JPG หรือ PNG');i.src=r.result};r.onerror=()=>toast('เปิดไฟล์ไม่ได้ ลองเลือกใหม่');r.readAsDataURL(file)}
+function form(title,fs,cb){
+ IM={};fs.forEach(f=>{if(f.t=='img')IM[f.k]=f.v||''});
+ const fl=f=>f.t=='img'?`<input type="file" accept="image/*" data-im="${f.k}"><img class="pv" id="pv-${f.k}" src="${f.v||''}" ${f.v?'':'hidden'}><input type="url" data-u="${f.k}" placeholder="หรือวางลิงก์รูป https://...">`
+  :f.t=='area'?`<textarea rows="3" data-k="${f.k}">${esc(f.v)}</textarea>`
+  :f.t=='sel'?`<select data-k="${f.k}">${f.o.map(([v,l])=>`<option value="${v}" ${v==f.v?'selected':''}>${l}</option>`).join('')}</select>`
+  :`<input data-k="${f.k}" type="${f.t||'text'}" ${f.t=='number'?'inputmode="decimal" step="any"':''} value="${esc(f.v)}">`;
+ const d=$('#dlg');d.innerHTML=`<div class="fm"><h3>${title}</h3>${fs.map(f=>`<label>${f.l}${fl(f)}</label>`).join('')}<div class="row"><button id="fx">ยกเลิก</button><button class="p" id="fo">บันทึก</button></div></div>`;
+ d.classList.add('on');
+ d.querySelectorAll('[data-im]').forEach(i=>i.onchange=()=>{if(!i.files[0])return;toast('กำลังอ่านรูป...');rs(i.files[0],u=>{IM[i.dataset.im]=u;const p=$('#pv-'+i.dataset.im);p.src=u;p.hidden=false;toast('เลือกรูปแล้ว กด บันทึก')})});
+ $('#fx').onclick=()=>d.classList.remove('on');
+ $('#fo').onclick=()=>{const v={};d.querySelectorAll('[data-k]').forEach(i=>v[i.dataset.k]=i.type=='number'?(parseFloat(i.value)||0):i.value);Object.assign(v,IM);d.querySelectorAll('[data-u]').forEach(i=>{if(i.value.trim())v[i.dataset.u]=i.value.trim()});
+  if('name' in v&&!v.name.trim())return toast('กรุณาใส่ชื่อ');d.classList.remove('on');cb(v)}}
+function cf(m,cb){const d=$('#dlg');d.innerHTML=`<div class="fm"><h3>${esc(m)}</h3><div class="row"><button id="fx">ยกเลิก</button><button class="p" id="fo">ยืนยัน</button></div></div>`;d.classList.add('on');$('#fx').onclick=()=>d.classList.remove('on');$('#fo').onclick=()=>{d.classList.remove('on');cb()}}
+function ask(t,cb){form(t,[{k:'v',l:'ตัวเลข',t:'number',v:''}],r=>cb(r.v))}
+const fsOf=(a,o)=>a.map(([k,l,t,x])=>({k,l,t,o:x,v:o[k]}));
+const EF=[['name','ชื่อ'],['img','รูปภาพ','img'],['hp','HP ปัจจุบัน','number'],['maxHp','HP สูงสุด','number'],['mp','MP ปัจจุบัน','number'],['maxMp','MP สูงสุด','number'],['armor','เกราะ','number'],['atk','พลังโจมตี','number']];
+const MF=[...EF,['text','ความสามารถพิเศษ','area']];
+const CF=[['name','ชื่อการ์ด'],['img','รูปภาพ','img'],['dmg','ความเสียหาย (เช่น 5 หรือ 2d6)'],['cost','ค่าใช้ MP','number'],['cd','คูลดาวน์ (เทิร์น)','number'],['type','ประเภท','sel',[['digital','การ์ดดิจิทัล'],['real','การ์ดจริง']]]];
+const IF=[['name','ชื่อไอเท็ม'],['kind','ชนิด','sel',[['stat','เพิ่มค่าสถานะ'],['special','ความสามารถพิเศษ']]],['maxHp','+ HP สูงสุด','number'],['maxMp','+ MP สูงสุด','number'],['armor','+ เกราะ','number'],['atk','+ พลังโจมตี','number'],['text','คำอธิบาย / ความสามารถ','area']];
+const E=d=>(d.k=='m'?S.mons:S.chars).find(x=>x.id==d.c);
+const num=p=>{if(p===null)return null;const v=parseFloat(p);return isNaN(v)?null:v};
+const fit=e=>{e.hp=Math.min(e.hp,eff(e,'maxHp'));e.mp=Math.min(e.mp,eff(e,'maxMp'))};
+const nm=(base,list)=>{const n=list.filter(x=>x.name==base||x.name.startsWith(base+' #')).length;return n?base+' #'+(n+1):base};
+const A={
+ tg(d){open.has(d.c)?open.delete(d.c):open.add(d.c);draw()},
+ ac(){form('ตัวละครใหม่',fsOf(EF,{name:'',hp:20,maxHp:20,mp:10,maxMp:10,armor:0,atk:1}),v=>act('สร้างตัวละคร '+v.name,()=>S.chars.push({...v,id:uid(),cards:[],items:[]})))},
+ am(){form('มอนสเตอร์ใหม่',fsOf(MF,{name:'',hp:30,maxHp:30,mp:0,maxMp:0,armor:0,atk:3,text:''}),v=>act('เพิ่มมอนสเตอร์ '+v.name,()=>S.mons.push({...v,name:nm(v.name,S.mons),id:uid()})))},
+ ed(d){const e=E(d);form('แก้ไข '+esc(e.name),fsOf(d.k=='m'?MF:EF,e),v=>act('แก้ไข '+e.name,()=>{Object.assign(e,v);fit(e)}))},
+ del(d){const e=E(d);cf(`ลบ "${e.name}" ใช่หรือไม่? (ย้อนกลับได้ด้วยปุ่ม ย้อน)`,()=>act('ลบ '+e.name,()=>{const L=d.k=='m'?S.mons:S.chars;L.splice(L.indexOf(e),1)}))},
+ dmg(d){const e=E(d),a=eff(e,'armor');ask(`ดาเมจที่ได้รับ (เกราะ ${a} จะหักให้อัตโนมัติ)`,v=>{const r=Math.max(0,v-a);act(`${e.name} รับดาเมจ ${v} (เกราะกัน ${v-r}) เสีย HP ${Math.min(r,e.hp)}`,()=>{e.hp=Math.max(0,e.hp-r)})})},
+ adj(d){const e=E(d),f=d.f,F=f.toUpperCase();form('ปรับ '+F,[{k:'v',l:'จำนวน',t:'number',v:''},{k:'op',l:'การปรับ',t:'sel',o:[['+','เพิ่ม'],['-','ลด']],v:'+'}],r=>{const v=r.op=='-'?-r.v:r.v;act(`${e.name} ${F} ${v>0?'+':''}${v}`,()=>{e[f]=Math.max(0,Math.min(eff(e,MX[f]),e[f]+v))})})},
+ tpl(d){const e=E(d);act('บันทึกแม่แบบ '+e.name,()=>{const {id,...t}=e;t.hp=t.maxHp;t.mp=t.maxMp;S.tpl.push({...t,name:e.name.replace(/ #\d+$/,''),id:uid()})})},
+ sp(d){const t=S.tpl.find(x=>x.id==d.i);act('เรียก '+t.name+' ลงสนาม',()=>{const {id,...m}=t;S.mons.push({...m,name:nm(t.name,S.mons),id:uid()})})},
+ dt(d){const t=S.tpl.find(x=>x.id==d.i);cf(`ลบแม่แบบ "${t.name}"?`,()=>act('ลบแม่แบบ '+t.name,()=>S.tpl.splice(S.tpl.indexOf(t),1)))},
+ ak(d){const c=E(d);form('การ์ดใหม่',fsOf(CF,{name:'',dmg:'1',cost:0,cd:0,type:'digital'}),v=>act(`${c.name} เพิ่มการ์ด ${v.name}`,()=>c.cards.push({...v,id:uid(),left:0})))},
+ ek(d){const c=E(d),k=c.cards.find(x=>x.id==d.i);form('แก้ไขการ์ด',fsOf(CF,k),v=>act('แก้ไขการ์ด '+k.name,()=>{Object.assign(k,v);k.left=Math.min(k.left,k.cd)}))},
+ dk(d){const c=E(d),k=c.cards.find(x=>x.id==d.i);cf(`ลบการ์ด "${k.name}"?`,()=>act(`${c.name} ลบการ์ด ${k.name}`,()=>c.cards.splice(c.cards.indexOf(k),1)))},
+ uk(d){const c=E(d),k=c.cards.find(x=>x.id==d.i);if(k.left>0)return toast(`ติดคูลดาวน์อีก ${k.left} เทิร์น`);if(c.mp<k.cost)return toast(`MP ไม่พอ (ต้องใช้ ${k.cost} มี ${c.mp})`);
+  act(`${c.name} ใช้การ์ด ${k.name} (ดาเมจ ${k.dmg}, MP -${k.cost})`,()=>{c.mp-=k.cost;k.left=k.cd})},
+ ai(d){const c=E(d);form('ไอเท็มใหม่',fsOf(IF,{name:'',kind:'stat',maxHp:0,maxMp:0,armor:0,atk:0,text:''}),v=>act(`${c.name} เพิ่มไอเท็ม ${v.name}`,()=>c.items.push({...v,id:uid(),on:false})))},
+ ei(d){const c=E(d),i=c.items.find(x=>x.id==d.i);form('แก้ไขไอเท็ม',fsOf(IF,i),v=>act('แก้ไขไอเท็ม '+i.name,()=>{Object.assign(i,v);fit(c)}))},
+ di(d){const c=E(d),i=c.items.find(x=>x.id==d.i);cf(`ลบไอเท็ม "${i.name}"?`,()=>act(`${c.name} ลบไอเท็ม ${i.name}`,()=>{c.items.splice(c.items.indexOf(i),1);fit(c)}))},
+ wi(d){const c=E(d),i=c.items.find(x=>x.id==d.i);act(`${c.name} ${i.on?'ถอด':'สวมใส่'} ${i.name}`,()=>{i.on=!i.on;fit(c)})},
+ ex(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='rpg-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click()},
+ im(){const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const r=new FileReader();r.onload=()=>{try{const n=JSON.parse(r.result);if(!n.chars||!n.mons)throw 0;cf('นำเข้าจะแทนที่ข้อมูลปัจจุบันทั้งหมด (ย้อนกลับได้) ต้องการต่อหรือไม่?',()=>act('นำเข้าไฟล์สำรอง',()=>{S=Object.assign({chars:[],mons:[],tpl:[],log:S.log,round:1},n)}))}catch(e){toast('ไฟล์สำรองไม่ถูกต้อง')}};r.readAsText(i.files[0])};i.click()},
+ wp(){cf('ล้างข้อมูลทั้งหมดในเครื่องนี้? (ควรส่งออกไฟล์สำรองก่อน)',()=>cf('ยืนยันอีกครั้ง: ล้างทั้งหมดจริงหรือไม่?',()=>{S={chars:[],mons:[],tpl:[],log:[],round:1};H=[];sv();draw()}))}
+};
+const B=(a,t,d,c='')=>`<button class="${c}" data-a="${a}" ${Object.entries(d||{}).map(([k,v])=>`data-${k}="${v}"`).join(' ')}>${t}</button>`;
+const av=e=>e.img?`<img class="av" src="${e.img}" alt="">`:`<div class="av">${esc((e.name||'?')[0])}</div>`;
+const bar=(l,v,m,c)=>`<div class="bar ${c}"><i style="width:${m?Math.max(0,Math.min(100,v/m*100)):0}%"></i><b>${l} ${v}/${m}</b></div>`;
+function ent(e,k){
+ const d={c:e.id,k},o=open.has(e.id);
+ let h=`<section class="cd ${k=='m'?'mon':'pl'}"><div class="hd" data-a="tg" data-c="${e.id}">${av(e)}<div><h3>${esc(e.name)}${e.hp<=0?' 💀':''}</h3><small>เกราะ ${eff(e,'armor')} | โจมตี ${eff(e,'atk')}</small></div>${k=='c'?`<span>${o?'▲':'▼'}</span>`:''}</div>`
+ +bar('HP',e.hp,eff(e,'maxHp'))+(eff(e,'maxMp')?bar('MP',e.mp,eff(e,'maxMp'),'m'):'')
+ +(k=='m'&&e.text?`<small>${esc(e.text)}</small>`:'')
+ +`<div class="row">${B('dmg','รับดาเมจ',d,'d')}${B('adj','HP ±',{...d,f:'hp'})}${B('adj','MP ±',{...d,f:'mp'})}${B('ed','แก้ไข',d)}${k=='m'?B('tpl','บันทึกแม่แบบ',d):''}${B('del','ลบ',d,'d')}</div>`;
+ if(k=='c'&&o){
+  h+=`<div class="sec"><b>การ์ด</b>${B('ak','+ การ์ด',d)}</div>`+(c=>c.cards.map(x=>{const r=!x.left,ok=r&&c.mp>=x.cost,dd={c:c.id,k:'c',i:x.id};
+   return `<div class="it">${av(x)}<div class="gr"><b>${esc(x.name)}</b><small>${x.type=='real'?'การ์ดจริง':'ดิจิทัล'} | ดาเมจ ${esc(x.dmg)} | MP ${x.cost} | CD ${x.cd}</small><small class="${r?'ok':'wt'}">${r?'พร้อมใช้':'รออีก '+x.left+' เทิร์น'}</small></div>${B('uk','ใช้',dd,ok?'p':'p off')}${B('ek','แก้',dd)}${B('dk','ลบ',dd,'d')}</div>`}).join('')||'<div class="emp">ยังไม่มีการ์ด</div>')(e)
+  +`<div class="sec"><b>ไอเท็ม</b>${B('ai','+ ไอเท็ม',d)}</div>`+(e.items.map(x=>{const dd={c:e.id,k:'c',i:x.id},b=[['maxHp','HP'],['maxMp','MP'],['armor','เกราะ'],['atk','โจมตี']].filter(([q])=>+x[q]).map(([q,l])=>`${l} ${x[q]>0?'+':''}${x[q]}`).join(', ');
+   return `<div class="it">${av(x)}<div class="gr"><b>${esc(x.name)}</b><small>${x.kind=='special'?'ความสามารถพิเศษ':'ค่าสถานะ'}${b?' | '+b:''}</small>${x.text?`<small>${esc(x.text)}</small>`:''}</div>${B('wi',x.on?'ถอด':'สวมใส่',dd,x.on?'':'p')}${B('ei','แก้',dd)}${B('di','ลบ',dd,'d')}</div>`}).join('')||'<div class="emp">ยังไม่มีไอเท็ม</div>');
+ }
+ return h+'</section>';
+}
+function draw(){
+ $('#rd').textContent='เทิร์น '+S.round;
+ $('#nv').innerHTML=[['p','ผู้เล่น'],['g','GM'],['h','ประวัติ'],['s','ข้อมูล']].map(([k,l])=>`<button data-t="${k}" class="${tab==k?'on':''}">${l}</button>`).join('');
+ let h='';
+ if(tab=='p')h=`<div class="sec"><h2>ตัวละคร</h2>${B('ac','+ ตัวละคร','','p')}</div>`+(S.chars.map(c=>ent(c,'c')).join('')||'<div class="emp">ยังไม่มีตัวละคร กด “+ ตัวละคร” เพื่อเริ่ม</div>');
+ if(tab=='g')h=`<div class="sec"><h2>หน้าจอ GM: มอนสเตอร์</h2>${B('am','+ มอนสเตอร์','','p')}</div>`+(S.mons.map(m=>ent(m,'m')).join('')||'<div class="emp">ยังไม่มีมอนสเตอร์ในสนาม</div>')
+  +`<h2>แม่แบบมอนสเตอร์</h2>`+(S.tpl.map(t=>`<div class="it">${av(t)}<div class="gr"><b>${esc(t.name)}</b><small>HP ${t.maxHp} | เกราะ ${t.armor} | โจมตี ${t.atk}</small></div>${B('sp','เรียก',{i:t.id},'p')}${B('dt','ลบ',{i:t.id},'d')}</div>`).join('')||'<div class="emp">กด “บันทึกแม่แบบ” ที่มอนสเตอร์เพื่อเก็บไว้ใช้ครั้งหน้า</div>');
+ if(tab=='h')h=`<h2>ประวัติการกระทำ</h2><small>ย้อนกลับได้อีก ${H.length} ขั้น (ปุ่ม “↩ ย้อน” ด้านบน)</small>`+(S.log.map(l=>`<div class="lg"><small>${l.t}</small>${esc(l.m)}</div>`).join('')||'<div class="emp">ยังไม่มีประวัติ</div>');
+ if(tab=='s')h=`<h2>สำรองข้อมูล</h2><p>ข้อมูลเก็บในเครื่องนี้เท่านั้น ไม่มีบัญชีหรือการซิงก์ ควรส่งออกไฟล์สำรองเป็นระยะ</p><div class="row">${B('ex','ส่งออกไฟล์สำรอง','','p')}${B('im','นำเข้าไฟล์สำรอง')}${B('wp','ล้างข้อมูลทั้งหมด','','d')}</div>`;
+ $('#mn').innerHTML=h;
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset);const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;draw();scrollTo(0,0)}});
+$('#un').onclick=undo;
+$('#et').onclick=()=>act('จบเทิร์น '+S.round,()=>{S.round++;S.chars.forEach(c=>c.cards.forEach(k=>k.left=Math.max(0,k.left-1)))});
+draw();
+</script>
+</body>
+</html>
